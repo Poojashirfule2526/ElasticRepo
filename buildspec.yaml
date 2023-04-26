@@ -4,17 +4,24 @@ phases:
   pre_build:
     commands:
       - echo Nothing to do in the pre_build phase...
-            
+      -aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/o4h3m3w7
+      
   build:
     commands:
       - echo Build started on `date`
       - mvn clean install
+      - docker build -t ecsdemo . 
+      - docker tag ecsdemo:latest public.ecr.aws/o4h3m3w7/ecsdemo:latest
                  
   post_build:
     commands:
       - echo Build completed on `date`
+      - docker push public.ecr.aws/o4h3m3w7/ecsdemo:latest
+      - printf '[{"name":"demo","imageUri":"377021732766.dkr.ecr.us-east-1.amazonaws.com/demo:latest"}]' > imagedefinition.json
      
 artifacts:
   files:
     - 'target/*.war'
+    -  imagedefinition.json
+    
   discard-paths: yes
